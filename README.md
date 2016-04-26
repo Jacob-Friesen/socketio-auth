@@ -5,7 +5,7 @@ Authenticate socket.io incoming connections with authorization code followed by 
 
 This will handle the following flow:
 
-- client Sends user credentials with a post
+- client Sends user credentials with a post to server api.
 - system returns a short life token
 - client connects sockets
 - When client receives the token, it emits "authenticate" with the just received token
@@ -42,12 +42,12 @@ npm install "git://github.com/z-open/socketio-jwt#commit-ish
 __Client side__:
 
 ```javascript
+
 ```
 
 __Server side__:
 
-
-
+```javascript
 
 ```
 
