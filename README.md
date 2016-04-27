@@ -1,6 +1,15 @@
 
 Authenticate socket.io incoming connections with authorization code followed by token, the latter will be blacklisted and refreshed for a safer connection.
 
+Based on the following articles:
+
+https://developer.salesforce.com/page/File:OAuthWebServerFlow.png
+
+https://stormpath.com/blog/jwt-the-right-way/
+
+https://developer.salesforce.com/page/Digging_Deeper_into_OAuth_2.0_on_Force.com
+
+
 
 
 This will handle the following flow:
@@ -53,6 +62,15 @@ __Server side__:
 
 ## Contribute
 
+__Scalling Right__:
+
+https://nodejs.org/api/cluster.html
+"There is no routing logic in Node.js, or in your program, and no shared state between the workers. Therefore, it is important to design your program such that it does not rely too heavily on in-memory data objects for things like sessions and login."
+
+http://goldfirestudios.com/blog/136/Horizontally-Scaling-Node.js-and-WebSockets-with-Redis
+
+## Contribute
+
 You are always welcome to open an issue or provide a pull-request!
 
 Also check out the unit tests:
@@ -61,6 +79,7 @@ npm test
 ```
 
 ## Issue Reporting
+
 
 If you have found a bug or if you have a feature request, please report them at this repository issues section. Please do not report security vulnerabilities on the public GitHub issue tracker. 
 
