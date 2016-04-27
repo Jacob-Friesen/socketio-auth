@@ -4,7 +4,7 @@ var io = require('socket.io-client');
 var should = require('should');
 var jwt = require('jsonwebtoken');
 
-describe('authorizer without querystring and refresh token', function () {
+describe('authorizer with auth code and refresh tokens', function () {
 
     var options;
     
@@ -78,7 +78,7 @@ describe('authorizer without querystring and refresh token', function () {
                     socket.close();
                     done();
                 })
-                .emit('authenticate', { token: token });
+                    .emit('authenticate', { token: token });
             });
         });
 
@@ -90,7 +90,7 @@ describe('authorizer without querystring and refresh token', function () {
             var token = this.token;
             socket.on('connect', function () {
                 socket.on('authenticated', function (refreshToken) {
-                    
+
                     should.exist(refreshToken);
                     token.should.not.eql(refreshToken);
                     socket.close();
@@ -154,7 +154,63 @@ describe('authorizer without querystring and refresh token', function () {
                 }).emit('authenticate', { token: token });
             });
         });
+
+        it('should connect, refresh token and then logout', function (done) {
+            var socket = io.connect('http://localhost:9000', {
+                'forceNew': true,
+            });
+            var token = this.token;
+            socket.on('connect', function () {
+                socket.on('authenticated', function (refreshToken) {
+                    should.exist(refreshToken);
+                    token.should.not.eql(refreshToken);
+                    console.log("EMIT");
+                    socket.emit("logout", refreshToken);
+                }).on('logged_out', function () {
+                    socket.close();
+                    done();
+                }).emit('authenticate', { token: token });
+            });
+        });
+
+
+        it('should prevent reconnecting with same token after logout', function (done) {
+            var socket = io.connect('http://localhost:9000', {
+                'forceNew': true,
+            });
+            var token = this.token;
+            var refreshedToken;
+            socket.on('connect', function () {
+                socket.on('authenticated', function (refreshToken) {
+                    should.exist(refreshToken);
+                    token.should.not.eql(refreshToken);
+                    refreshedToken = refreshToken;
+                    socket.emit("logout", refreshToken);
+                }).on('logged_out', function () {
+                    socket.close();
+                    
+                    // now we try to use the refreshToken again!
+                    var socket2 = io.connect('http://localhost:9000', {
+                        'forceNew': true,
+                    });
+                    socket2.on('connect', function () {
+                        socket2.on('unauthorized', function (err) {
+                            // console.log("error" + JSON.stringify(err));
+                            socket2.close();
+                            err.message.should.eql("Token is no longer valid");
+                            done();
+                        }).emit('authenticate', { token: refreshedToken });
+
+                    });
+                    
+                }).emit('authenticate', { token: token });
+            });
+        });
+
+
     });
+
+    
     
     // when the black listed token is about to expire, inform client to authenticate so that it can record a new refreshed token..
     
