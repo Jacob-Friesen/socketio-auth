@@ -15,7 +15,7 @@ describe('authorizer with auth code and refresh tokens', function () {
             handshake: false,
             refresh: function (decoded) {
                 return {
-                    token: jwt.sign(decoded, this.secret, { expiresIn: 60 * 6 * 60, jwtid: new Date() }),
+                    token: jwt.sign(decoded, this.secret, { expiresIn: 10, jwtid: new Date() }),
                     expiration: 30
                 };
             }
@@ -74,7 +74,7 @@ describe('authorizer with auth code and refresh tokens', function () {
             socket.on('connect', function () {
                 socket.on('authenticated', function (refreshToken) {
                     should.exist(refreshToken);
-                    token.should.not.eql(refreshToken);
+                    token.should.not.eql(refreshToken);                                                          
                     socket.close();
                     done();
                 })

@@ -10,29 +10,42 @@ https://stormpath.com/blog/jwt-the-right-way/
 https://developer.salesforce.com/page/Digging_Deeper_into_OAuth_2.0_on_Force.com
 
 
-
+__Main Flow__
 
 This will handle the following flow:
 
-- client Sends user credentials with a post to server api.
-- system returns a short life token
-- client connects sockets
-- When client receives the token, it emits "authenticate" with the just received token
+- Client Sends user credentials with a post to server api.
+- System returns a short life token
+- Client connects sockets
+- Then it emits "authenticate" and passed the just received token
 (If system receives token too late (timeout), it will emit unauthorized)
-- System verify the token and emits "authenticated" with a new token (with a long life span)
-- On receiving the authenticated message, client stores the just received token.
+- System verifies the token and emits "authenticated" back to the client with a new token (with a long life span)
+- On receiving "authenticated", client stores the just received token for future reconnection use.
 
 
-Alternate flows:
+__Alternate flows__
 
 If the connection is lost, client will reconnect with the stored token and receive a refreshed one.
 
 If A token previous used and replaced by a new one is received by the server, it will send unauthorized.
 
-If a token is about to expire, the server disconnects the socket.
-This forces the client to reconnect with its current token, which invalidates the token and allow the reception of a refreshed one.
 
 
+
+
+??????????????????????????
+
+
+If a token is about to expire, the client should request a new one before too late.
+Otherwise server will disconnect to prevent client to remain connected..
+
+
+
+
+
+
+If client socket emits "logout" with its current token, server will invalidate token to prevent reuse and send back "logged_out".
+Client can then delete its token / redirect to logout or login page.
 
 ## Installation
 
