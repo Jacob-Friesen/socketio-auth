@@ -6,18 +6,19 @@ var jwt = require('jsonwebtoken');
 
 describe('authorizer with auth code and refresh tokens', function () {
 
-    var options;
-    
+
+        var options;
+            
     //start and stop the server
     before(function (done) {
+
         var id = 0;
         options = {
             handshake: false,
             refresh: function (decoded) {
-                return {
-                    token: jwt.sign(decoded, this.secret, { expiresIn: 10, jwtid: new Date() }),
-                    expiration: 30
-                };
+                return jwt.sign(decoded, this.secret, { expiresIn: 10
+                       // , jwtid: new Date()
+                         }) ;
             }
         };
         fixture.start(options, done);
@@ -25,6 +26,14 @@ describe('authorizer with auth code and refresh tokens', function () {
 
 
     after(fixture.stop);
+    
+    
+    beforeEach(function(done){
+        // otherwise test might create similar tokens (based on now())         
+        options.clearBlackList();
+        done();
+    });
+
 
     describe('when the user is not logged in', function () {
 
@@ -164,7 +173,6 @@ describe('authorizer with auth code and refresh tokens', function () {
                 socket.on('authenticated', function (refreshToken) {
                     should.exist(refreshToken);
                     token.should.not.eql(refreshToken);
-                    console.log("EMIT");
                     socket.emit("logout", refreshToken);
                 }).on('logged_out', function () {
                     socket.close();
