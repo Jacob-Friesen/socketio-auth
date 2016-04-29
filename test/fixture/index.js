@@ -12,78 +12,68 @@ var bodyParser = require('body-parser');
 var server, sio;
 var enableDestroy = require('server-destroy');
 
-exports.start = function (options, callback) {
+exports.start = function(options, callback) {
 
-  if(typeof options == 'function'){
-    callback = options;
-    options = {};
-  }
+    if (typeof options == 'function') {
+        callback = options;
+        options = {};
+    }
 
-  options = xtend({
-    secret: 'aaafoo super sercret',
-    timeout: 1000,
-    handshake: true
-  }, options);
+    options.secret = 'aaafoo super sercret';
+    options.timeout = 1000;
 
-  var app = express();
+    var app = express();
 
-  app.use(bodyParser.json());
+    app.use(bodyParser.json());
 
-  app.post('/login', function (req, res) {
-    var profile = {
-      first_name: 'John',
-      last_name: 'Doe',
-      email: 'john@doe.com',
-      id: 123
-    };
+    app.post('/login', function(req, res) {
+        var profile = {
+            first_name: 'John',
+            last_name: 'Doe',
+            email: 'john@doe.com',
+            id: 123
+        };
 
-    // We are sending the profile inside the token
-    var token = jwt.sign(profile, options.secret, { //expiresInMinutes: 60*5 
-    expiresIn: 60*5*60,jwtid: new Date()
-    
+        // We are sending the profile inside the token
+        var token = jwt.sign(profile, options.secret, {
+            expiresIn: 30
+        });
+
+        res.json({ token: token });
     });
 
-    res.json({token: token});
-  });
+    server = http.createServer(app);
 
-  server = http.createServer(app);
+    sio = socketIo.listen(server);
 
-  sio = socketIo.listen(server);
-
-  if (options.handshake) {
-    sio.use(socketio_auth.authorize(options));
-
-    sio.sockets.on('echo', function (m) {
-      sio.sockets.emit('echo-response', m);
-    });
-  } else {
+    // no handshare
     sio.sockets
-      .on('connection', socketio_auth.authorize(options))
-      .on('error', function(err){
-          console.log ("ERROR: "+JSON.stringify(err));
-      })
-       .on('unauthorized', function(err){
-          console.log ("UNAUTHORIZED: "+JSON.stringify(err));
-      })
-      .on('authenticated', function (socket) {
-        // socket.on('echo', function (m) {
-        //   socket.emit('echo-response', m);
-        // });
-      });
-  }
+        .on('connection', socketio_auth.authorize(options))
+        .on('error', function(err) {
+            console.log("ERROR: " + JSON.stringify(err));
+        })
+        .on('unauthorized', function(err) {
+            console.log("UNAUTHORIZED: " + JSON.stringify(err));
+        })
+        .on('authenticated', function(socket) {
+            // socket.on('echo', function (m) {
+            //   socket.emit('echo-response', m);
+            // });
+        });
 
-  server.__sockets = [];
-  server.on('connection', function (c) {
-    server.__sockets.push(c);
-  });
-  server.listen(9000, callback);
-  enableDestroy(server);
+
+    server.__sockets = [];
+    server.on('connection', function(c) {
+        server.__sockets.push(c);
+    });
+    server.listen(9000, callback);
+    enableDestroy(server);
 };
 
-exports.stop = function (callback) {
-  sio.close();
-  try {
-    server.destroy();
-  } catch (er) {}
-  callback();
+exports.stop = function(callback) {
+    sio.close();
+    try {
+        server.destroy();
+    } catch (er) { }
+    callback();
 };
