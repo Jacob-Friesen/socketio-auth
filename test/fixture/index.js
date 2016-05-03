@@ -42,7 +42,7 @@ exports.start = function(options, callback) {
     server = http.createServer(app);
 
 
-    sio = socketio_auth.server(server, app, options)
+    sio = socketio_auth.infrastructure(server, app, options)
 
     // app.use(bodyParser.json());
 
