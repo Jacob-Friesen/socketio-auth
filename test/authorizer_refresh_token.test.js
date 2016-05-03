@@ -4,54 +4,49 @@ var io = require('socket.io-client');
 var should = require('should');
 var jwt = require('jsonwebtoken');
 
-describe('authorizer with auth code and refresh tokens', function () {
+describe('authorizer with auth code and refresh tokens', function() {
 
-
-        var options;
-            
+    var options;
     //start and stop the server
-    before(function (done) {
-
+    before(function(done) {
         var id = 0;
         options = {
-            handshake: false,
-            refresh: function (decoded) {
-                return jwt.sign(decoded, this.secret, { expiresIn: 10
-                       // , jwtid: new Date()
-                         }) ;
+            refresh: function(decoded) {
+                return jwt.sign(decoded, this.secret, { expiresIn: 10 });
+            },
+            claim: function(user) {
+                return user;
             }
         };
         fixture.start(options, done);
     });
-
-
+    
     after(fixture.stop);
-    
-    
-    beforeEach(function(done){
-        // otherwise test might create similar tokens (based on now())         
+
+    beforeEach(function(done) {
+        // otherwise test might create similar tokens (based on now())  
         options.clearBlackList();
         done();
     });
 
 
-    describe('when the user is not logged in', function () {
+    describe('when the user is not logged in', function() {
 
-        it('should close the connection after a timeout if no auth message is received', function (done) {
+        it('should close the connection after a timeout if no auth message is received', function(done) {
             var socket = io.connect('http://localhost:9000', {
                 forceNew: true
             });
-            socket.once('disconnect', function () {
+            socket.once('disconnect', function() {
                 done();
             });
         });
 
-        it('should not respond echo', function (done) {
+        it('should not respond echo', function(done) {
             var socket = io.connect('http://localhost:9000', {
                 'forceNew': true,
             });
 
-            socket.on('echo-response', function () {
+            socket.on('echo-response', function() {
                 done(new Error('this should not happen'));
             }).emit('echo', { hi: 123 });
 
@@ -60,14 +55,14 @@ describe('authorizer with auth code and refresh tokens', function () {
 
     });
 
-    describe('when the user is logged in', function () {
+    describe('when the user is logged in', function() {
 
-        beforeEach(function (done) {
+        beforeEach(function(done) {
             request.post({
                 url: 'http://localhost:9000/login',
                 form: { username: 'jose', password: 'Pa123' },
                 json: true
-            }, function (err, resp, body) {
+            }, function(err, resp, body) {
                 this.token = body.token;
                 done();
             }.bind(this));
@@ -75,15 +70,15 @@ describe('authorizer with auth code and refresh tokens', function () {
 
 
 
-        it('should do the handshake and connect and receive a different token', function (done) {
+        it('should do the handshake and connect and receive a different token', function(done) {
             var socket = io.connect('http://localhost:9000', {
                 'forceNew': true,
             });
             var token = this.token;
-            socket.on('connect', function () {
-                socket.on('authenticated', function (refreshToken) {
+            socket.on('connect', function() {
+                socket.on('authenticated', function(refreshToken) {
                     should.exist(refreshToken);
-                    token.should.not.eql(refreshToken);                                                          
+                    token.should.not.eql(refreshToken);
                     socket.close();
                     done();
                 })
@@ -92,25 +87,25 @@ describe('authorizer with auth code and refresh tokens', function () {
         });
 
 
-        it('should connect, refresh token and make the auth token invalid', function (done) {
+        it('should connect, refresh token and make the auth token invalid', function(done) {
             var socket = io.connect('http://localhost:9000', {
                 'forceNew': true,
             });
             var token = this.token;
-            socket.on('connect', function () {
-                socket.on('authenticated', function (refreshToken) {
+            socket.on('connect', function() {
+                socket.on('authenticated', function(refreshToken) {
 
                     should.exist(refreshToken);
                     token.should.not.eql(refreshToken);
                     socket.close();
-                      
+
 
                     // now trying a new connection but with the same token
                     var socket2 = io.connect('http://localhost:9000', {
                         'forceNew': true,
                     });
-                    socket2.on('connect', function () {
-                        socket2.on('unauthorized', function (err) {
+                    socket2.on('connect', function() {
+                        socket2.on('unauthorized', function(err) {
                             // console.log("error" + JSON.stringify(err));
                             socket2.close();
                             err.message.should.eql("Token is no longer valid");
@@ -124,13 +119,13 @@ describe('authorizer with auth code and refresh tokens', function () {
         });
 
 
-        it('should connect, refresh token and make the refreshed token invalid', function (done) {
+        it('should connect, refresh token and make the refreshed token invalid', function(done) {
             var socket = io.connect('http://localhost:9000', {
                 'forceNew': true,
             });
             var token = this.token;
-            socket.on('connect', function () {
-                socket.on('authenticated', function (refreshToken) {
+            socket.on('connect', function() {
+                socket.on('authenticated', function(refreshToken) {
                     should.exist(refreshToken);
                     token.should.not.eql(refreshToken);
                     socket.close();
@@ -138,8 +133,8 @@ describe('authorizer with auth code and refresh tokens', function () {
                     var socket2 = io.connect('http://localhost:9000', {
                         'forceNew': true,
                     });
-                    socket2.on('connect', function () {
-                        socket2.on('authenticated', function (newRefreshedToken) {
+                    socket2.on('connect', function() {
+                        socket2.on('authenticated', function(newRefreshedToken) {
                             // console.log("error" + JSON.stringify(err));
                             socket2.close();
 
@@ -147,8 +142,8 @@ describe('authorizer with auth code and refresh tokens', function () {
                             var socket3 = io.connect('http://localhost:9000', {
                                 'forceNew': true,
                             });
-                            socket3.on('connect', function () {
-                                socket3.on('unauthorized', function (err) {
+                            socket3.on('connect', function() {
+                                socket3.on('unauthorized', function(err) {
                                     // console.log("error" + JSON.stringify(err));
                                     socket3.close();
                                     err.message.should.eql("Token is no longer valid");
@@ -164,17 +159,17 @@ describe('authorizer with auth code and refresh tokens', function () {
             });
         });
 
-        it('should connect, refresh token and then logout', function (done) {
+        it('should connect, refresh token and then logout', function(done) {
             var socket = io.connect('http://localhost:9000', {
                 'forceNew': true,
             });
             var token = this.token;
-            socket.on('connect', function () {
-                socket.on('authenticated', function (refreshToken) {
+            socket.on('connect', function() {
+                socket.on('authenticated', function(refreshToken) {
                     should.exist(refreshToken);
                     token.should.not.eql(refreshToken);
                     socket.emit("logout", refreshToken);
-                }).on('logged_out', function () {
+                }).on('logged_out', function() {
                     socket.close();
                     done();
                 }).emit('authenticate', { token: token });
@@ -182,27 +177,27 @@ describe('authorizer with auth code and refresh tokens', function () {
         });
 
 
-        it('should prevent reconnecting with same token after logout', function (done) {
+        it('should prevent reconnecting with same token after logout', function(done) {
             var socket = io.connect('http://localhost:9000', {
                 'forceNew': true,
             });
             var token = this.token;
             var refreshedToken;
-            socket.on('connect', function () {
-                socket.on('authenticated', function (refreshToken) {
+            socket.on('connect', function() {
+                socket.on('authenticated', function(refreshToken) {
                     should.exist(refreshToken);
                     token.should.not.eql(refreshToken);
                     refreshedToken = refreshToken;
                     socket.emit("logout", refreshToken);
-                }).on('logged_out', function () {
+                }).on('logged_out', function() {
                     socket.close();
-                    
+
                     // now we try to use the refreshToken again!
                     var socket2 = io.connect('http://localhost:9000', {
                         'forceNew': true,
                     });
-                    socket2.on('connect', function () {
-                        socket2.on('unauthorized', function (err) {
+                    socket2.on('connect', function() {
+                        socket2.on('unauthorized', function(err) {
                             // console.log("error" + JSON.stringify(err));
                             socket2.close();
                             err.message.should.eql("Token is no longer valid");
@@ -210,7 +205,7 @@ describe('authorizer with auth code and refresh tokens', function () {
                         }).emit('authenticate', { token: refreshedToken });
 
                     });
-                    
+
                 }).emit('authenticate', { token: token });
             });
         });
@@ -218,10 +213,10 @@ describe('authorizer with auth code and refresh tokens', function () {
 
     });
 
-    
-    
+
+
     // when the black listed token is about to expire, inform client to authenticate so that it can record a new refreshed token..
-    
+
     // could we be less intrusive and code all the login...  additional_auth...not sure...if not good enough
 
 });
