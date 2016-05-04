@@ -1,6 +1,6 @@
 {
    // Controls the font size.
-   "editor.fontSize": 14,
+   "editor.fontSize": "",
 
    // Controls the line height.
    "editor.lineHeight": 20,
