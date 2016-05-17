@@ -11,9 +11,9 @@ https://developer.salesforce.com/page/Digging_Deeper_into_OAuth_2.0_on_Force.com
 
 ## Description
 
-This npm package provides the middleware to secure your express/socketio application. the 2 following components are available for use on the same server or different ones: 
+This npm package provides the middleware to secure your express/socketio application. the following components are available for use on the same server or different ones: 
 - login/registration api 
-- Secures websockets.
+- Secure websockets / secure api router 
 
 
 ## Use Case
@@ -58,20 +58,35 @@ findUserByCredentials : to provide a function that returns a promise with the us
 
 disposalInterval: value in seconds, interval between attempt to dispose expired token from the black list (get rid of expired token since they can not be reused anyway) 
 
+api : the event name used from a socket to make the api calls handled by the apiRouter. By default, 'api'.
+
 
 __Usage__
 
-socketioAuth.infrastructure(server,app,options)
+socketioAuth.infraServe(server,app,options)
 
-will create the secure web socket server and configure the api to run on the same server. This returns an instance of the socket server
+will create the secure web socket server and configure the api to run on the same server. This returns an instance of api router. 
+
 
 socketioAuth.apiServe(app,options)
 
 will add login and register request handling to an express app.
 Post credentials to those url and the token or app url will be sent back.
 
+
 socketIoAuth.socketServe(server, options)
+
 create an instance of socketio that handles connection/reconnection via tokens.
+
+
+socketIoAuth.apiRouter(socketIoInstance,'myApi')
+
+create an instance of the api router. then you just have to register via the on service method your api execution code for each call. The api router makes sure you have an authenticated user before executing any api call.
+Ex: apiRouter.on('list',function (params) {
+    return promise;
+});
+the client would use the following:
+socket.emit('myApi','list',someParams,callbackToDoSomethingWithReceivedData);
 
 
 ## Example 
@@ -116,6 +131,7 @@ You are always welcome to open an issue or provide a pull-request!
 
 Also check out the unit tests:
 ```bash
+npm install
 npm test
 ```
 
