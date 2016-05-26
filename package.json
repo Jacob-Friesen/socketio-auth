@@ -23,13 +23,13 @@
   "dependencies": {
     "jsonwebtoken": "^5.0.0",
     "xtend": "~2.1.2",
+    "promise": "^7.1.1",
     "socketio-jwt": "git://github.com/z-open/socketio-jwt#4b317ef302f5abf01bd062a8b4d98b566e113ac2"
   },
   "devDependencies": {
     "body-parser": "~1.13.3",
     "express": "~4.10.6",
     "mocha": "~1.17.0",
-
     "request": "~2.19.0",
     "serve-static": "^1.7.1",
     "server-destroy": "~1.0.1",
