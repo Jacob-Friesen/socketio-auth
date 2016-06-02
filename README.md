@@ -46,9 +46,31 @@ Client can then delete its token / redirect to logout or login page.
 npm install "git://github.com/z-open/socketio-jwt#commit-ish
 ```
 
-## options
+## Usage
 
-refresh: to provide a function that returns a token, based on a payload.
+__socketIoAuth.socketServe(server, options)__
+
+This creates an instance of socketio that handles connection/reconnection via tokens. 
+
+Options are the following:
+
+refresh: to provide a function that returns a token, based on a payload. There is a function by default that adds the token duration (dur) to the payload and sets the token expiration.
+
+claim: to provide a function that returns a claim based on a user
+
+secret: the value to compute the jwt token if the default generation is used;
+
+disposalInterval: value in seconds, interval between attempt to dispose expired token from the black list (get rid of expired token since they can not be reused anyway) 
+
+tokenExpiresInMins: duration of the session token (long life) if the refresh option is not provided.
+
+
+__socketioAuth.apiServe(app,options)__
+
+This will add login and register request handling to an express app.
+If credentials are posted to url /login or /registration, a authorization code or app url will be sent back. The client will need it to connect the socketio instance.
+
+Options are the following:
 
 claim: to provide a function that returns a claim based on a user
 
@@ -56,46 +78,43 @@ secret: the value to compute the jwt token if the default generation is used;
 
 findUserByCredentials : to provide a function that returns a promise with the user...ex: find user in a db matching email and password
 
-disposalInterval: value in seconds, interval between attempt to dispose expired token from the black list (get rid of expired token since they can not be reused anyway) 
+appUrl: if this function is provided, it will receive the auth code as a parameter. It should return the proper url to contact the socketio instance and pass the auth code as a querystring. By default, client will receive the auth code if the appUrl is not provided.
 
-api : the event name used from a socket to make the api calls handled by the apiRouter. By default, 'api'.
+authorization: to provide a function that returns a auth code, based on a payload. There is a function by default that simply sets its expiration.
 
-
-__Usage__
-
-socketioAuth.infraServe(server,app,options)
-
-will create the secure web socket server and configure the api to run on the same server. This returns an instance of api router. 
+codeExpiresInSecs: duration of the auth code (short life) if the refresh option is not provided.
 
 
-socketioAuth.apiServe(app,options)
-
-will add login and register request handling to an express app.
-Post credentials to those url and the token or app url will be sent back.
-
-
-socketIoAuth.socketServe(server, options)
-
-create an instance of socketio that handles connection/reconnection via tokens.
-
-
-socketIoAuth.apiRouter(socketIoInstance,'myApi')
+__socketIoAuth.apiRouter(socketIoInstance,'myApi')__
 
 create an instance of the api router. then you just have to register via the on service method your api execution code for each call. The api router makes sure you have an authenticated user before executing any api call.
 Ex: apiRouter.on('list',function (params) {
+    console.log('Call from User '+this.userId+'-'+ JSON.stringify(this.user));
     return promise;
 });
 the client would use the following:
 socket.emit('myApi','list',someParams,callbackToDoSomethingWithReceivedData);
 
 
+__socketioAuth.infraServe(server,app,options)__
+
+will create the secure web socket server and configure the api to run on the same server. This returns an instance of api router. 
+
+In addition to all options listed above, we have the following:
+
+api : the event name used from a socket to make the api calls handled by the apiRouter. By default, 'api'.
+
+
+
+
+
 ## Example 
 ```javascript
-```
-
-**Note:** If you are using a base64-encoded secret (e.g. your Auth0 secret key), you need to convert it to a Buffer: `Buffer('your secret key', 'base64')`
+````
 
 __Client side__:
+
+Install latest npm revision of angular-socketio.
 
 ```javascript
 ```
