@@ -43,7 +43,7 @@ Client can then delete its token / redirect to logout or login page.
 
 ## Installation
 ```
-npm install "git://github.com/z-open/socketio-jwt#commit-ish
+npm install "git://github.com/z-open/socketio-auth#commit-ish
 ```
 
 ## Usage
