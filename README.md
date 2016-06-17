@@ -96,7 +96,7 @@ Ex:
 apiRouter.on('list',function handle(params) {
     var handler = this;
     console.log('Call from User '+handler.userId+'- TenantId:'+handler.tenantId+' -'+ JSON.stringify(handler.user));
-    return promise;
+    return promiseThatReturnsData(...params...);
 });
 ```
 the handle function has access to a handler. The handler object has the following properties and methods:
