@@ -54,15 +54,17 @@ This creates an instance of socketio that handles connection/reconnection via to
 
 Options are the following:
 
-refresh: to provide a function that returns a token, based on a payload. There is a function by default that adds the token duration (dur) to the payload and sets the token expiration.
+- refresh: to provide a function that returns a token, based on a payload. There is a function by default that adds the token duration (dur) to the payload and sets the token expiration.
 
-claim: to provide a function that returns a claim based on a user
+- claim: to provide a function that returns a claim based on a user
 
-secret: the value to compute the jwt token if the default generation is used;
+- secret: the value to compute the jwt token if the default generation is used;
 
-disposalInterval: value in seconds, interval between attempt to dispose expired token from the black list (get rid of expired token since they can not be reused anyway) 
+- disposalInterval: value in seconds, interval between attempt to dispose expired token from the black list (get rid of expired token since they can not be reused anyway) 
 
-tokenExpiresInMins: duration of the session token (long life) if the refresh option is not provided.
+- tokenExpiresInMins: duration of the session token (long life) if the refresh option is not provided.
+
+- getTenantId: to provide a function which receives the payload as a parameter. This function shall return a promise that returns the tenantId. When a token is created, the tenant id will be obtained via this function and stored in the socket instance. 
 
 
 __socketioAuth.apiServe(app,options)__
@@ -72,17 +74,17 @@ If credentials are posted to url /login or /registration, a authorization code o
 
 Options are the following:
 
-claim: to provide a function that returns a claim based on a user
+- claim: to provide a function that returns a claim based on a user
 
-secret: the value to compute the jwt token if the default generation is used;
+- secret: the value to compute the jwt token if the default generation is used;
 
-findUserByCredentials : to provide a function that returns a promise with the user...ex: find user in a db matching email and password
+- findUserByCredentials : to provide a function that returns a promise with the user...ex: find user in a db matching email and password
 
-appUrl: if this function is provided, it will receive the auth code as a parameter. It should return the proper url to contact the socketio instance and pass the auth code as a querystring. By default, client will receive the auth code if the appUrl is not provided.
+- appUrl: if this function is provided, it will receive the auth code as a parameter. It should return the proper url to contact the socketio instance and pass the auth code as a querystring. By default, client will receive the auth code if the appUrl is not provided.
 
-authorization: to provide a function that returns a auth code, based on a payload. There is a function by default that simply sets its expiration.
+- authorization: to provide a function that returns a auth code, based on a payload. There is a function by default that simply sets its expiration.
 
-codeExpiresInSecs: duration of the auth code (short life) if the refresh option is not provided.
+- codeExpiresInSecs: duration of the auth code (short life) if the refresh option is not provided.
 
 
 __socketIoAuth.apiRouter(socketIoInstance,'myApi')__
@@ -91,11 +93,19 @@ create an instance of the api router. then you just have to register via the on 
 
 Ex:
 ```javascript
-apiRouter.on('list',function (params) {
-    console.log('Call from User '+this.userId+'-'+ JSON.stringify(this.user));
+apiRouter.on('list',function handle(params) {
+    var handler = this;
+    console.log('Call from User '+handler.userId+'- TenantId:'+handler.tenantId+' -'+ JSON.stringify(handler.user));
     return promise;
 });
 ```
+the handle function has access to a handler. The handler object has the following properties and methods:
+- userId
+- user (which is the payload)
+- tenantId (if the getTenantId() was provided as a socketServe option)
+- broadcast (send a socket event to all users except the one being handled)
+- broadcastAll (send a socket event to all users as well as the one being handled)
+
 the client would use the following:
 ```javascript
 socket.emit('myApi','list',someParams,callbackToDoSomethingWithReceivedData);
@@ -107,7 +117,7 @@ will create the secure web socket server and configure the api to run on the sam
 
 In addition to all options listed above, we have the following:
 
-api : the event name used from a socket to make the api calls handled by the apiRouter. By default, 'api'.
+- api : the event name used from a socket to make the api calls handled by the apiRouter. By default, 'api'.
 
 
 
