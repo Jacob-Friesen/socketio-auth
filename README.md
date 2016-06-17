@@ -43,7 +43,7 @@ Client can then delete its token / redirect to logout or login page.
 
 ## Installation
 ```
-npm install "git://github.com/z-open/socketio-auth#commit-ish
+npm install "git://github.com/z-open/socketio-auth#version
 ```
 
 ## Usage
@@ -88,13 +88,18 @@ codeExpiresInSecs: duration of the auth code (short life) if the refresh option 
 __socketIoAuth.apiRouter(socketIoInstance,'myApi')__
 
 create an instance of the api router. then you just have to register via the on service method your api execution code for each call. The api router makes sure you have an authenticated user before executing any api call.
-Ex: apiRouter.on('list',function (params) {
+
+Ex:
+```javascript
+apiRouter.on('list',function (params) {
     console.log('Call from User '+this.userId+'-'+ JSON.stringify(this.user));
     return promise;
 });
+```
 the client would use the following:
+```javascript
 socket.emit('myApi','list',someParams,callbackToDoSomethingWithReceivedData);
-
+```
 
 __socketioAuth.infraServe(server,app,options)__
 
@@ -110,7 +115,7 @@ api : the event name used from a socket to make the api calls handled by the api
 
 ## Example 
 ```javascript
-````
+```
 
 __Client side__:
 
